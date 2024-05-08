@@ -1,12 +1,26 @@
 import { Request, Response } from "express";
 import { CategoryService } from "../services/service.category";
 const categoryService = new CategoryService();
-
+import {ParsedQs} from "qs"
 export class CategoryController{
+    async getAllCategoriesStatic(req: Request, res: Response): Promise<any> {
+        // console.log("get")
+        try {
+            const data:Object = await categoryService.getAllCategoriesStatic()
+            return res.json(data)
+            
+        } catch (error: any) {
+            return res.json({
+                success:false,
+                msg: `Error while getting all categories, ${error.message}`
+            })
+        }
+    }
     async getAllCategories(req: Request, res: Response): Promise<any> {
         // console.log("get")
         try {
-            const data:Object = await categoryService.getAllCategories()
+            const filters:ParsedQs = req.query;
+            const data:Object = await categoryService.getAllCategories(filters)
             return res.json(data)
             
         } catch (error: any) {

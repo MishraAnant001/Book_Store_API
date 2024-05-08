@@ -4,7 +4,8 @@ import { IAuthor } from "../interfaces/interface.author";
 const authorSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true
+        required: true,
+        lowercase:true
     },
     biography: {
         type: String,

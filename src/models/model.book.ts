@@ -4,15 +4,18 @@ import { IBook } from "../interfaces/interface.book";
 const bookSchema = new mongoose.Schema({
     title: {
         type: String,
-        required: true
+        required: true,
+        lowercase:true
     },
     author: {
         type: String,
-        required: true
+        required: true,
+        lowercase:true
     },
     category: {
         type:String,
-        required: true
+        required: true,
+        lowercase:true
     },
     ISBN: {
         type: String,

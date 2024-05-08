@@ -6,10 +6,86 @@ import Author from '../models/model.author';
 import { IAuthor } from '../interfaces/interface.author';
 import { ICategory } from '../interfaces/interface.category';
 import Category from '../models/model.category';
+import { ParsedQs } from 'qs';
 
 export class BookService {
-    async getAllBooks(): Promise<any> {
+    async getAllBooksStatic(): Promise<any> {
         const data: IBook[] = await Book.find({}).select("title author category description price")
+        if (data.length == 0) {
+            return {
+                success: false,
+                msg: "No Book found"
+            }
+        }
+        else {
+            return {
+                success: true,
+                msg: `${data.length} Books found`,
+                data: data
+            }
+        }
+    }
+    async getAllBooks(filters: ParsedQs): Promise<any> {
+        // console.log(filters);
+        const { title, author, category,sort,fields,numericFilters } = filters;
+        const queryObject: any = {};
+        if (title) {
+            queryObject.title = {$regex:title,$options:"i"} as object;
+        }
+        if (author) {
+            queryObject.author = {$regex:author,$options:"i"} as object;
+        }
+        if (category) {
+            queryObject.category = {$regex:category,$options:"i"} as object;
+        }
+        // console.log(queryObject);
+        if(numericFilters){
+            if(typeof numericFilters === "string"){
+                const operatorMap ={
+                    ">": "$gt",
+                    "<": "$lt",
+                    ">=": "$gte",
+                    "<=": "$lte",
+                    "==": "$eq",
+                    "!=": "$ne"
+                }
+                const regEx = /\b(<|>|<=|>=|==|!=)/g
+                let numfilter = numericFilters.replace(regEx, (match) => {
+                    const key = match as keyof typeof operatorMap;
+                    return `-${operatorMap[key]}-`;
+                });
+                // console.log(numfilter);
+                const options = ["price"]
+                let numfilterupdated = numfilter.split(",").forEach((item)=>{
+                    const[field,operator,value]= item.split("-");
+                    if(options.includes(field)){
+                        queryObject[field]={[operator]:Number(value)}
+                    }
+                })
+            }
+        }
+        let result: any = Book.find(queryObject)
+        if(sort){
+            if (typeof sort === 'string') {
+                let sortlist = sort.split(",").join(" ");
+                result = result.sort(sortlist);
+            }
+        }
+        if(fields){
+            if (typeof fields === 'string') {
+                let fieldlist = fields.split(",").join(" ");
+                result = result.select(fieldlist);
+            }
+        }else{
+            result = result.select("title author category description price");
+        }
+
+        const page = Number(filters.page) || 1
+        const limit = Number(filters.limit) || 5
+        const skip = (page - 1) * limit
+        result = result.skip(skip).limit(limit)
+
+        const data : IBook[] = await result
         if (data.length == 0) {
             return {
                 success: false,
@@ -124,7 +200,7 @@ export class BookService {
             data: data
         }
     }
-    async updateBookById(id:string,bookdata: BookTempInterface): Promise<any> {
+    async updateBookById(id: string, bookdata: BookTempInterface): Promise<any> {
         if (!mongoose.isValidObjectId(id)) {
             return {
                 success: false,

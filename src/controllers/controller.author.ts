@@ -1,13 +1,28 @@
 import { Request, Response } from "express";
 import { AuthorService } from "../services/service.author";
 import { authorTempInterface } from "../interfaces/interface.author";
+import {ParsedQs} from "qs"
 const authorService = new AuthorService();
 
 export class AuthorController{
+    async getAllAuthorsStatic(req: Request, res: Response): Promise<any> {
+        // console.log("get")
+        try {
+            const data:Object = await authorService.getAllAuthorsStatic()
+            return res.json(data)
+            
+        } catch (error: any) {
+            res.json({
+                success:false,
+                msg: `Error while getting all authors, ${error.message}`
+            })
+        }
+    }
     async getAllAuthors(req: Request, res: Response): Promise<any> {
         // console.log("get")
         try {
-            const data:Object = await authorService.getAllAuthors()
+            const filters:ParsedQs = req.query;
+            const data:Object = await authorService.getAllAuthors(filters)
             return res.json(data)
             
         } catch (error: any) {

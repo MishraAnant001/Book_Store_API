@@ -1,0 +1,23 @@
+[
+    { "name": "Horror" },
+    { "name": "Fantasy" },
+    { "name": "Science Fiction" },
+    { "name": "Mystery" },
+    { "name": "Romance" },
+    { "name": "Thriller" },
+    { "name": "Historical Fiction" },
+    { "name": "Young Adult" },
+    { "name": "Non-fiction" },
+    { "name": "Biography" },
+    { "name": "Self-Help" },
+    { "name": "Cooking" },
+    { "name": "Travel" },
+    { "name": "Poetry" },
+    { "name": "Graphic Novel" },
+    { "name": "Crime" },
+    { "name": "Dystopian" },
+    { "name": "Memoir" },
+    { "name": "Business" },
+    { "name": "Art" }
+  ]
+  

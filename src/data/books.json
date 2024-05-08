@@ -1,0 +1,155 @@
+[
+    {
+      "title": "Midnight Terror",
+      "author": "Ajay Singh",
+      "category": "Horror",
+      "ISBN": "JDJ648DNFU8JRJF80",
+      "description": "A spine-chilling tale of terror at midnight",
+      "price": 500
+    },
+    {
+      "title": "Whispers in the Dark",
+      "author": "Priya Sharma",
+      "category": "Mystery",
+      "ISBN": "KDL834MKWU72LXN53",
+      "description": "Mysterious whispers lead to dark secrets",
+      "price": 600
+    },
+    {
+      "title": "Realm of Shadows",
+      "author": "Michael Johnson",
+      "category": "Fantasy",
+      "ISBN": "OPN926ABH7EZYVQ41",
+      "description": "Journey into a realm filled with shadows",
+      "price": 1000
+    },
+    {
+      "title": "Haunted Mansion",
+      "author": "Sophie Anderson",
+      "category": "Romance",
+      "ISBN": "WQP583PLK92JHZT75",
+      "description": "Love blooms in the shadows of a haunted mansion",
+      "price": 400
+    },
+    {
+      "title": "Echoes of Fear",
+      "author": "Rahul Patel",
+      "category": "Science Fiction",
+      "ISBN": "TUR739FQI5BHXKJ27",
+      "description": "Echoes of fear reverberate in the depths of space",
+      "price": 200
+    },
+    {
+      "title": "Cursed Shadows",
+      "author": "Emma Lee",
+      "category": "Historical Fiction",
+      "ISBN": "GHL425QSW3PZECO89",
+      "description": "A curse haunts the shadows of history",
+      "price": 1500
+    },
+    {
+      "title": "Ghosts of the Past",
+      "author": "Juan Martinez",
+      "category": "Biography",
+      "ISBN": "DNM367WKF2LAXIP84",
+      "description": "Uncovering the ghosts of a fascinating past",
+      "price": 2000
+    },
+    {
+      "title": "The Haunting Hour",
+      "author": "Lily Nguyen",
+      "category": "Self-Help",
+      "ISBN": "PQO582VNZ9MRHYU63",
+      "description": "Overcoming fears with the power of the mind",
+      "price": 1200
+    },
+    {
+      "title": "Crimson Nightmares",
+      "author": "Ajay Singh",
+      "category": "Young Adult",
+      "ISBN": "FJR825WDL6VOPQZ41",
+      "description": "Teenagers face crimson nightmares in a dystopian world",
+      "price": 700
+    },
+    {
+      "title": "Haunted Dreams",
+      "author": "Priya Sharma",
+      "category": "Non-fiction",
+      "ISBN": "HFD937RWO1KJLXE26",
+      "description": "Analyzing the psychology behind haunted dreams",
+      "price": 1600
+    },
+    {
+      "title": "The Ghost Ship",
+      "author": "Michael Johnson",
+      "category": "Cooking",
+      "ISBN": "TYR841BNM3OJVKW28",
+      "description": "A ghostly ship inspires culinary creations",
+      "price": 800
+    },
+    {
+      "title": "Dark Whispers",
+      "author": "Sophie Anderson",
+      "category": "Travel",
+      "ISBN": "ZDM628NSP9AUYXQ15",
+      "description": "Journeying through haunted destinations",
+      "price": 2300
+    },
+    {
+      "title": "The Phantom Manor",
+      "author": "Rahul Patel",
+      "category": "Poetry",
+      "ISBN": "KJS472WXM8NLVQP39",
+      "description": "Poetic reflections on a phantom-infested manor",
+      "price": 3000
+    },
+    {
+      "title": "Blood Moon Rising",
+      "author": "Emma Lee",
+      "category": "Graphic Novel",
+      "ISBN": "DMK593BXO2PAVRW47",
+      "description": "Illustrated tales of blood moon rituals",
+      "price": 400
+    },
+    {
+      "title": "Haunted Hills",
+      "author": "Juan Martinez",
+      "category": "Crime",
+      "ISBN": "WQE824HSM7YNJZT36",
+      "description": "Crimes haunt the mist-covered hills",
+      "price": 900
+    },
+    {
+      "title": "Midnight Terror",
+      "author": "Lily Nguyen",
+      "category": "Dystopian",
+      "ISBN": "JHY946POQ5WAMNL78",
+      "description": "Terror strikes under the cover of a dystopian night",
+      "price": 1800
+    },
+    {
+      "title": "The Dark Descent",
+      "author": "Ajay Singh",
+      "category": "Memoir",
+      "ISBN": "NMP635WRQ7AHJKL91",
+      "description": "A memoir of a dark descent into madness",
+      "price": 1200
+    },
+    {
+      "title": "The Witching Hour",
+      "author": "Priya Sharma",
+      "category": "Business",
+      "ISBN": "QWE483KJM9NLVUX62",
+      "description": "Harnessing the power of the witching hour in business",
+      "price": 1400
+    },
+    {
+      "title": "The Whispering Dead",
+      "author": "Michael Johnson",
+      "category": "Art",
+      "ISBN": "VBN375OPQ9AWLRT52",
+      "description": "Art inspired by the whispers of the dead",
+      "price": 600
+    }
+  ]
+  

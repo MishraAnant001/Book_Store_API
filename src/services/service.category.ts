@@ -1,10 +1,43 @@
 import mongoose from 'mongoose';
 import Category from '../models/model.category';
 import { ICategory } from '../interfaces/interface.category';
+import { ParsedQs } from 'qs';
 
 export class CategoryService {
-    async getAllCategories(): Promise<any> {
-        const data: ICategory[] = await Category.find({})
+    async getAllCategoriesStatic(): Promise<any> {
+        const data: ICategory[] = await Category.find({}).select("name")
+        if (data.length == 0) {
+            return {
+                success: false,
+                msg: "No Category found"
+            }
+        }
+        else {
+            return {
+                success: true,
+                msg: `${data.length} Categories found`,
+                data: data
+            }
+        }
+    }
+    async getAllCategories(filters: ParsedQs): Promise<any> {
+        const {name,sort} = filters;
+        const queryObject: any = {};
+        if (name) {
+            queryObject.name = {$regex:name,$options:"i"} as object;
+        }
+        let result = Category.find(queryObject)
+        if(sort){
+            if (typeof sort === 'string') {
+                let sortlist = sort.split(",").join(" ");
+                result = result.sort(sortlist);
+            }
+        }
+        const page = Number(filters.page) || 1
+        const limit = Number(filters.limit) || 5
+        const skip = (page - 1) * limit
+        result = result.skip(skip).limit(limit)
+        const data: ICategory[] = await result.select("name")
         if (data.length == 0) {
             return {
                 success: false,

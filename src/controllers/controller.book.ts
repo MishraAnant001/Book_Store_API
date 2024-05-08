@@ -2,12 +2,27 @@ import { Request, Response } from "express";
 import { BookService } from "../services/service.book";
 import { BookTempInterface } from "../interfaces/interface.book";
 const bookService = new BookService();
+import {ParsedQs} from "qs"
 
 export class BookController {
+    async getAllBooksStatic(req: Request, res: Response): Promise<any> {
+        // console.log("get")
+        try {
+            const data: Object = await bookService.getAllBooksStatic();
+            return res.json(data)
+
+        } catch (error: any) {
+            res.json({
+                success: false,
+                msg: `Error while getting all books, ${error.message}`
+            })
+        }
+    }
     async getAllBooks(req: Request, res: Response): Promise<any> {
         // console.log("get")
         try {
-            const data: Object = await bookService.getAllBooks()
+            const filters:ParsedQs = req.query;
+            const data: Object = await bookService.getAllBooks(filters);
             return res.json(data)
 
         } catch (error: any) {

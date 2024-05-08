@@ -6,7 +6,7 @@ import { userTempInterface } from "../interfaces/interface.user";
 
 export class UserService {
     async getAllUsers(): Promise<any> {
-        const data: UserInterface[] = await User.find({}).select("username password");
+        const data: UserInterface[] = await User.find({}).select("username");
         if (data.length == 0) {
             return {
                 success: false,

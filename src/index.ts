@@ -1,6 +1,8 @@
 import {app} from "./app";
 import { config } from "dotenv";
 import { ConnectDB } from "./DB/connectDB";
+
+
 config()
 
 const connection = new ConnectDB();
