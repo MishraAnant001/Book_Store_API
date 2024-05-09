@@ -8,14 +8,14 @@ const bookSchema = new mongoose.Schema({
         lowercase:true
     },
     author: {
-        type: String,
-        required: true,
-        lowercase:true
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Author',
+        required: true
     },
     category: {
-        type:String,
-        required: true,
-        lowercase:true
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+        required: true
     },
     ISBN: {
         type: String,

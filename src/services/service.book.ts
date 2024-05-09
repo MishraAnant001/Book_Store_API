@@ -27,79 +27,208 @@ export class BookService {
     }
     async getAllBooks(filters: ParsedQs): Promise<any> {
         // console.log(filters);
-        const { title, author, category,sort,fields,numericFilters } = filters;
-        const queryObject: any = {};
-        if (title) {
-            queryObject.title = {$regex:title,$options:"i"} as object;
-        }
-        if (author) {
-            queryObject.author = {$regex:author,$options:"i"} as object;
-        }
-        if (category) {
-            queryObject.category = {$regex:category,$options:"i"} as object;
-        }
-        // console.log(queryObject);
-        if(numericFilters){
-            if(typeof numericFilters === "string"){
-                const operatorMap ={
-                    ">": "$gt",
-                    "<": "$lt",
-                    ">=": "$gte",
-                    "<=": "$lte",
-                    "==": "$eq",
-                    "!=": "$ne"
-                }
-                const regEx = /\b(<|>|<=|>=|==|!=)/g
-                let numfilter = numericFilters.replace(regEx, (match) => {
-                    const key = match as keyof typeof operatorMap;
-                    return `-${operatorMap[key]}-`;
-                });
-                // console.log(numfilter);
-                const options = ["price"]
-                let numfilterupdated = numfilter.split(",").forEach((item)=>{
-                    const[field,operator,value]= item.split("-");
-                    if(options.includes(field)){
-                        queryObject[field]={[operator]:Number(value)}
-                    }
-                })
-            }
-        }
-        let result: any = Book.find(queryObject)
-        if(sort){
-            if (typeof sort === 'string') {
-                let sortlist = sort.split(",").join(" ");
-                result = result.sort(sortlist);
-            }
-        }
-        if(fields){
-            if (typeof fields === 'string') {
-                let fieldlist = fields.split(",").join(" ");
-                result = result.select(fieldlist);
-            }
-        }else{
-            result = result.select("title author category description price");
-        }
-
+        const { search,sort,fields,numericFilters} = filters;
+        let data: IBook[] | null = null;
+        const searchfields = ["title", "description", "author.name","category.name"]
+        const searchQueryArray = []; 
         const page = Number(filters.page) || 1
         const limit = Number(filters.limit) || 5
+        // console.log(filters?.page,filters?.limit)
         const skip = (page - 1) * limit
-        result = result.skip(skip).limit(limit)
-
-        const data : IBook[] = await result
-        if (data.length == 0) {
+        // console.log(skip)
+        if (search) {
+            if (typeof search === 'string') {
+                const regEx = new RegExp(search, 'i');
+                data = await Book.aggregate([
+                    {
+                        $skip:Number(skip)
+                    },
+                    {
+                        $limit:Number(limit)
+                    },
+                    {
+                        $lookup:{
+                            from: "authors",
+                            localField: "author",
+                            foreignField: "_id",
+                            as: "author"
+                        }
+                    },
+                    {
+                        $lookup:{
+                            from: "categories",
+                            localField: "category",
+                            foreignField: "_id",
+                            as: "category"
+                        }
+                    },
+                    {
+                        $match: {
+                            $or: [
+                                { "title": regEx },
+                                { "author.name": regEx },
+                                { "category.name": regEx },
+                                {"description": regEx}
+                            ]
+                        }
+                    },{
+                        $project: {
+                            title: 1,
+                            description: 1,
+                            price: 1,
+                            author :{$arrayElemAt :["$author.name",0]},
+                            category:{$arrayElemAt :["$category.name",0]}
+                        }
+                    },
+                    
+                ])
+            }
+        } else {
+            data = await Book.aggregate([
+                {
+                    $skip:Number(skip)
+                },
+                {
+                    $limit:Number(limit)
+                },
+                {
+                    $lookup:{
+                        from: "authors",
+                        localField: "author",
+                        foreignField: "_id",
+                        as: "author"
+                    }
+                },
+                {
+                    $lookup:{
+                        from: "categories",
+                        localField: "category",
+                        foreignField: "_id",
+                        as: "category"
+                    }
+                },
+                {
+                    $project: {
+                        title: 1,
+                        description: 1,
+                        price: 1,
+                        author :{$arrayElemAt :["$author.name",0]},
+                        category:{$arrayElemAt :["$category.name",0]}
+                    }
+                }
+            ])
+        }
+        if (data && data.length == 0) {
             return {
                 success: false,
                 msg: "No Book found"
             }
-        }
-        else {
+        } else if (data) {
             return {
                 success: true,
                 msg: `${data.length} Books found`,
                 data: data
             }
+        } else {
+            return {
+                success: false,
+                msg: "Error fetching books"
+            }
         }
     }
+
+    // async getBookByTitle(title: string): Promise<any> {
+    //     const data: IBook | null = await Book.findOne({ title: title })
+    //     // console.log(data)
+    //     if (!data) {
+    //         return {
+    //             success: false,
+    //             msg: "No book found"
+    //         }
+    //     }
+    //     return {
+    //         success: true,
+    //         msg: "book fetched successfully",
+    //         data: data
+    //     }
+
+    // }
+
+    // async getAllBooks(filters: ParsedQs): Promise<any> {
+    //     // console.log(filters);
+    //     const { title, author, category,sort,fields,numericFilters } = filters;
+    //     const queryObject: any = {};
+    //     if (title) {
+    //         queryObject.title = {$regex:title,$options:"i"} as object;
+    //     }
+    //     if (author) {
+    //         queryObject.author = {$regex:author,$options:"i"} as object;
+    //     }
+    //     if (category) {
+    //         queryObject.category = {$regex:category,$options:"i"} as object;
+    //     }
+    //     // console.log(queryObject);
+    //     if(numericFilters){
+    //         if(typeof numericFilters === "string"){
+    //             const operatorMap ={
+    //                 ">": "$gt",
+    //                 "<": "$lt",
+    //                 ">=": "$gte",
+    //                 "<=": "$lte",
+    //                 "==": "$eq",
+    //                 "!=": "$ne"
+    //             }
+    //             const regEx = /\b(<|>|<=|>=|==|!=)/g
+    //             let numfilter = numericFilters.replace(regEx, (match) => {
+    //                 const key = match as keyof typeof operatorMap;
+    //                 return `-${operatorMap[key]}-`;
+    //             });
+    //             // console.log(numfilter);
+    //             const options = ["price"]
+    //             let numfilterupdated = numfilter.split(",").forEach((item)=>{
+    //                 const[field,operator,value]= item.split("-");
+    //                 if(options.includes(field)){
+    //                     queryObject[field]={[operator]:Number(value)}
+    //                 }
+    //             })
+    //         }
+    //     }
+    //     let result: any = Book.find(queryObject)
+    //     if(sort){
+    //         if (typeof sort === 'string') {
+    //             let sortlist = sort.split(",").join(" ");
+    //             result = result.sort(sortlist);
+    //         }
+    //     }
+    //     if(fields){
+    //         if (typeof fields === 'string') {
+    //             let fieldlist = fields.split(",").join(" ");
+    //             result = result.select(fieldlist);
+    //         }
+    //     }else{
+    //         result = result.select("title author category description price");
+    //     }
+
+    //     const page = Number(filters.page) || 1
+    //     const limit = Number(filters.limit) || 5
+    //     const skip = (page - 1) * limit
+    //     result = result.skip(skip).limit(limit)
+
+    //     const data : IBook[] = await result
+    //     if (data.length == 0) {
+    //         return {
+    //             success: false,
+    //             msg: "No Book found"
+    //         }
+    //     }
+    //     else {
+    //         return {
+    //             success: true,
+    //             msg: `${data.length} Books found`,
+    //             data: data
+    //         }
+    //     }
+    // }
 
     // async getBookByTitle(title: string): Promise<any> {
     //     const data: IBook | null = await Book.findOne({ title: title })
@@ -140,36 +269,6 @@ export class BookService {
 
     }
 
-    // async postBook(bookdata: BookTempInterface): Promise<any> {
-    //     const { title, author, category, ISBN, description, price } = bookdata;
-    //     const userauthor: IAuthor | null = await Author.findOne({ name: author })
-    //     if (!userauthor) {
-    //         return {
-    //             success: false,
-    //             msg: "No such author found please create author!"
-    //         }
-    //     }
-    //     const userCategory: ICategory | null = await Category.findOne({ name: category })
-    //     if (!userCategory) {
-    //         return {
-    //             success: false,
-    //             msg: "No such category found please create category!"
-    //         }
-    //     }
-    //     const data: IBook = await Book.create({
-    //         title: title,
-    //         author: userauthor._id,
-    //         category: userCategory._id,
-    //         ISBN: ISBN,
-    //         description: description,
-    //         price: price
-    //     })
-    //     return {
-    //         success: true,
-    //         msg: "Book added successfully",
-    //         data: data
-    //     }
-    // }
     async postBook(bookdata: BookTempInterface): Promise<any> {
         const { title, author, category, ISBN, description, price } = bookdata;
         const userauthor: IAuthor | null = await Author.findOne({ name: author })
@@ -188,8 +287,8 @@ export class BookService {
         }
         const data: IBook = await Book.create({
             title: title,
-            author: author,
-            category: category,
+            author: userauthor._id,
+            category: userCategory._id,
             ISBN: ISBN,
             description: description,
             price: price
@@ -200,6 +299,36 @@ export class BookService {
             data: data
         }
     }
+    // async postBook(bookdata: BookTempInterface): Promise<any> {
+    //     const { title, author, category, ISBN, description, price } = bookdata;
+    //     const userauthor: IAuthor | null = await Author.findOne({ name: author })
+    //     if (!userauthor) {
+    //         return {
+    //             success: false,
+    //             msg: "No such author found please create author!"
+    //         }
+    //     }
+    //     const userCategory: ICategory | null = await Category.findOne({ name: category })
+    //     if (!userCategory) {
+    //         return {
+    //             success: false,
+    //             msg: "No such category found please create category!"
+    //         }
+    //     }
+    //     const data: IBook = await Book.create({
+    //         title: title,
+    //         author: author,
+    //         category: category,
+    //         ISBN: ISBN,
+    //         description: description,
+    //         price: price
+    //     })
+    //     return {
+    //         success: true,
+    //         msg: "Book added successfully",
+    //         data: data
+    //     }
+    // }
     async updateBookById(id: string, bookdata: BookTempInterface): Promise<any> {
         if (!mongoose.isValidObjectId(id)) {
             return {
