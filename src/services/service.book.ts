@@ -35,7 +35,7 @@ export class BookService {
         const limit = Number(filters.limit) || 5
         // console.log(filters?.page,filters?.limit)
         const skip = (page - 1) * limit
-        let matchObject = {}
+        let matchObject :any= {}
         let sortObject: any = {
             createdAt: -1
         }
@@ -55,7 +55,7 @@ export class BookService {
                         projectObject[field] = 1
                     }
                 })
-                console.log(projectObject)
+                // console.log(projectObject)
             }
         } else {
             projectObject = {
@@ -79,6 +79,7 @@ export class BookService {
             matchObject = {
                 $or: searchQueryArray
             }
+            console.log(matchObject)
             // console.log(searchQueryArray)
         }
         if (sort) {
@@ -87,7 +88,7 @@ export class BookService {
                 let sortlist = sort.split(",");
                 // console.log(sortlist)
                 sortlist.forEach((item) => {
-                    console.log(item)
+                    // console.log(item)
                     const flag = item[0] == "-" ? -1 : 1;
                     // console.log(flag)
                     if (flag == -1) {
@@ -97,6 +98,32 @@ export class BookService {
                 })
                 // console.log(sortObject)
             }
+        }
+        if(numericFilters){
+            if(typeof numericFilters === "string"){
+                const operatorMap ={
+                    ">": "$gt",
+                    "<": "$lt",
+                    ">=": "$gte",
+                    "<=": "$lte",
+                    "==": "$eq",
+                    "!=": "$ne"
+                }
+                const regEx = /\b(<|>|<=|>=|==|!=)/g
+                let numfilter = numericFilters.replace(regEx, (match) => {
+                    const key = match as keyof typeof operatorMap;
+                    return `-${operatorMap[key]}-`;
+                });
+                // console.log(numfilter);
+                const options = ["price"]
+                let numfilterupdated = numfilter.split(",").forEach((item)=>{
+                    const[field,operator,value]= item.split("-");
+                    if(options.includes(field)){
+                        matchObject[field]={[operator]:Number(value)}
+                    }
+                })
+            }
+            console.log(matchObject)
         }
 
         data = await Book.aggregate([
@@ -259,31 +286,31 @@ export class BookService {
     //         queryObject.category = {$regex:category,$options:"i"} as object;
     //     }
     //     // console.log(queryObject);
-    //     if(numericFilters){
-    //         if(typeof numericFilters === "string"){
-    //             const operatorMap ={
-    //                 ">": "$gt",
-    //                 "<": "$lt",
-    //                 ">=": "$gte",
-    //                 "<=": "$lte",
-    //                 "==": "$eq",
-    //                 "!=": "$ne"
-    //             }
-    //             const regEx = /\b(<|>|<=|>=|==|!=)/g
-    //             let numfilter = numericFilters.replace(regEx, (match) => {
-    //                 const key = match as keyof typeof operatorMap;
-    //                 return `-${operatorMap[key]}-`;
-    //             });
-    //             // console.log(numfilter);
-    //             const options = ["price"]
-    //             let numfilterupdated = numfilter.split(",").forEach((item)=>{
-    //                 const[field,operator,value]= item.split("-");
-    //                 if(options.includes(field)){
-    //                     queryObject[field]={[operator]:Number(value)}
-    //                 }
-    //             })
-    //         }
-    //     }
+        // if(numericFilters){
+        //     if(typeof numericFilters === "string"){
+        //         const operatorMap ={
+        //             ">": "$gt",
+        //             "<": "$lt",
+        //             ">=": "$gte",
+        //             "<=": "$lte",
+        //             "==": "$eq",
+        //             "!=": "$ne"
+        //         }
+        //         const regEx = /\b(<|>|<=|>=|==|!=)/g
+        //         let numfilter = numericFilters.replace(regEx, (match) => {
+        //             const key = match as keyof typeof operatorMap;
+        //             return `-${operatorMap[key]}-`;
+        //         });
+        //         // console.log(numfilter);
+        //         const options = ["price"]
+        //         let numfilterupdated = numfilter.split(",").forEach((item)=>{
+        //             const[field,operator,value]= item.split("-");
+        //             if(options.includes(field)){
+        //                 queryObject[field]={[operator]:Number(value)}
+        //             }
+        //         })
+        //     }
+        // }
     //     let result: any = Book.find(queryObject)
     //     if(sort){
     //         if (typeof sort === 'string') {

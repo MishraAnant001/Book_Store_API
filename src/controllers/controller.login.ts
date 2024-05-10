@@ -7,6 +7,7 @@ export class LoginController {
     async loginUser(req: Request, res: Response): Promise<any> {
         // console.log("get")
         try {
+            // console.log(req)
             const userdata:userTempInterface = req.body;
             if(!userdata){
                 return res.json({
