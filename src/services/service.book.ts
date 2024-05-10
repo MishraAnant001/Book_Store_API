@@ -27,112 +27,203 @@ export class BookService {
     }
     async getAllBooks(filters: ParsedQs): Promise<any> {
         // console.log(filters);
-        const { search,sort,fields,numericFilters} = filters;
+        let { search, sort, fields, numericFilters } = filters;
         let data: IBook[] | null = null;
-        const searchfields = ["title", "description", "author.name","category.name"]
-        const searchQueryArray = []; 
+        const searchfields = ["title", "description", "author.name", "category.name"]
+        let searchQueryArray: object[] = [];
         const page = Number(filters.page) || 1
         const limit = Number(filters.limit) || 5
         // console.log(filters?.page,filters?.limit)
         const skip = (page - 1) * limit
-        // console.log(skip)
-        if (search) {
-            if (typeof search === 'string') {
-                const regEx = new RegExp(search, 'i');
-                data = await Book.aggregate([
-                    {
-                        $skip:Number(skip)
-                    },
-                    {
-                        $limit:Number(limit)
-                    },
-                    {
-                        $lookup:{
-                            from: "authors",
-                            localField: "author",
-                            foreignField: "_id",
-                            as: "author"
-                        }
-                    },
-                    {
-                        $lookup:{
-                            from: "categories",
-                            localField: "category",
-                            foreignField: "_id",
-                            as: "category"
-                        }
-                    },
-                    {
-                        $match: {
-                            $or: [
-                                { "title": regEx },
-                                { "author.name": regEx },
-                                { "category.name": regEx },
-                                {"description": regEx}
-                            ]
-                        }
-                    },{
-                        $project: {
-                            title: 1,
-                            description: 1,
-                            price: 1,
-                            author :{$arrayElemAt :["$author.name",0]},
-                            category:{$arrayElemAt :["$category.name",0]}
-                        }
-                    },
-                    
-                ])
+        let matchObject = {}
+        let sortObject: any = {
+            createdAt: -1
+        }
+        let projectObject: any = {
+        }
+        if (fields) {
+            if (typeof fields == "string") {
+                const fieldList = fields.split(",");
+                fieldList.forEach((field)=>{
+                    console.log(field)
+                    if(field=="author"){
+                        projectObject[field] = { $arrayElemAt: ["$author.name", 0] }
+                    }else if(field=="category"){
+                        projectObject[field] = { $arrayElemAt: ["$category.name", 0] }
+                    }
+                    else{
+                        projectObject[field] = 1
+                    }
+                })
+                console.log(projectObject)
             }
         } else {
-            data = await Book.aggregate([
-                {
-                    $skip:Number(skip)
-                },
-                {
-                    $limit:Number(limit)
-                },
-                {
-                    $lookup:{
-                        from: "authors",
-                        localField: "author",
-                        foreignField: "_id",
-                        as: "author"
-                    }
-                },
-                {
-                    $lookup:{
-                        from: "categories",
-                        localField: "category",
-                        foreignField: "_id",
-                        as: "category"
-                    }
-                },
-                {
-                    $project: {
-                        title: 1,
-                        description: 1,
-                        price: 1,
-                        author :{$arrayElemAt :["$author.name",0]},
-                        category:{$arrayElemAt :["$category.name",0]}
+            projectObject = {
+                title: 1,
+                author: { $arrayElemAt: ["$author.name", 0] },
+                description: 1,
+                category: { $arrayElemAt: ["$category.name", 0] },
+                price: 1
+            }
+        }
+        // console.log(skip)
+        if (search) {
+            searchQueryArray = searchfields.map((field) => {
+                return {
+                    [field]: {
+                        $regex: search,
+                        $options: "i"
                     }
                 }
-            ])
+            })
+            matchObject = {
+                $or: searchQueryArray
+            }
+            // console.log(searchQueryArray)
         }
+        if (sort) {
+            if (typeof sort === 'string') {
+                sort = sort.trim();
+                let sortlist = sort.split(",");
+                // console.log(sortlist)
+                sortlist.forEach((item) => {
+                    console.log(item)
+                    const flag = item[0] == "-" ? -1 : 1;
+                    // console.log(flag)
+                    if (flag == -1) {
+                        item = item.replace("-", "");
+                    }
+                    sortObject[item] = flag;
+                })
+                // console.log(sortObject)
+            }
+        }
+
+        data = await Book.aggregate([
+            {
+                $lookup: {
+                    from: "authors",
+                    localField: "author",
+                    foreignField: "_id",
+                    as: "author"
+                }
+            },
+            {
+                $lookup: {
+                    from: "categories",
+                    localField: "category",
+                    foreignField: "_id",
+                    as: "category"
+                }
+            },
+            {
+                $match: matchObject
+            }, {
+                $project: projectObject
+            },
+            {
+                $sort: sortObject
+            },
+            {
+                $skip: Number(skip)
+            },
+            {
+                $limit: Number(limit)
+            },
+        ])
+        // if (search) {
+        //     if (typeof search === 'string') {
+        //         const regEx = new RegExp(search, 'i');
+        //         data = await Book.aggregate([
+
+        //             {
+        //                 $lookup:{
+        //                     from: "authors",
+        //                     localField: "author",
+        //                     foreignField: "_id",
+        //                     as: "author"
+        //                 }
+        //             },
+        //             {
+        //                 $lookup:{
+        //                     from: "categories",
+        //                     localField: "category",
+        //                     foreignField: "_id",
+        //                     as: "category"
+        //                 }
+        //             },
+        //             {
+        //                 $match: {
+        //                     $or: [
+        //                         { "title": regEx },
+        //                         { "author.name": regEx },
+        //                         { "category.name": regEx },
+        //                         {"description": regEx}
+        //                     ]
+        //                 }
+        //             },{
+        //                 $project: {
+        //                     title: 1,
+        //                     description: 1,
+        //                     price: 1,
+        //                     author :{$arrayElemAt :["$author.name",0]},
+        //                     category:{$arrayElemAt :["$category.name",0]}
+        //                 }
+        //             },
+        //             {
+        //                 $skip:Number(skip)
+        //             },
+        //             {
+        //                 $limit:Number(limit)
+        //             }
+
+        //         ])
+        //     }
+        // } else {
+        //     data = await Book.aggregate([
+        //         {
+        //             $lookup:{
+        //                 from: "authors",
+        //                 localField: "author",
+        //                 foreignField: "_id",
+        //                 as: "author"
+        //             }
+        //         },
+        //         {
+        //             $lookup:{
+        //                 from: "categories",
+        //                 localField: "category",
+        //                 foreignField: "_id",
+        //                 as: "category"
+        //             }
+        //         },
+        //         {
+        //             $project: {
+        //                 title: 1,
+        //                 description: 1,
+        //                 price: 1,
+        //                 author :{$arrayElemAt :["$author.name",0]},
+        //                 category:{$arrayElemAt :["$category.name",0]}
+        //             }
+        //         },
+        //         {
+        //             $skip:Number(skip)
+        //         },
+        //         {
+        //             $limit:Number(limit)
+        //         }
+        //     ])
+        // }
         if (data && data.length == 0) {
             return {
                 success: false,
                 msg: "No Book found"
             }
-        } else if (data) {
+        } else {
             return {
                 success: true,
                 msg: `${data.length} Books found`,
                 data: data
-            }
-        } else {
-            return {
-                success: false,
-                msg: "Error fetching books"
             }
         }
     }
