@@ -1,8 +1,7 @@
 import mongoose from 'mongoose';
-import { authorTempInterface } from '../interfaces/interface.author';
-import Author from '../models/model.author';
-import { IAuthor } from '../interfaces/interface.author';
 import { ParsedQs } from 'qs';
+import { IAuthor,authorTempInterface } from '../interfaces';
+import { Author } from '../models';
 
 export class AuthorService {
     async getAllAuthorsStatic(): Promise<any> {
