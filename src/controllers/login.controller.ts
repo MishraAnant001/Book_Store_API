@@ -1,5 +1,5 @@
-import { userTempInterface } from "../interfaces/interface.user";
-import { LoginService } from "../services/service.login";
+import { userTempInterface } from "../interfaces";
+import { LoginService } from "../services";
 import { Request, Response } from "express";
 const loginService = new LoginService();
 

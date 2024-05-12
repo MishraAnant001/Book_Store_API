@@ -1,11 +1,6 @@
 import mongoose from 'mongoose';
-import Book from "../models/model.book";
-import { BookTempInterface } from "../interfaces/interface.book";
-import { IBook } from "../interfaces/interface.book";
-import Author from '../models/model.author';
-import { IAuthor } from '../interfaces/interface.author';
-import { ICategory } from '../interfaces/interface.category';
-import Category from '../models/model.category';
+import { Book,Category,Author } from '../models';
+import { BookTempInterface,IBook,IAuthor,ICategory } from '../interfaces';
 import { ParsedQs } from 'qs';
 
 export class BookService {

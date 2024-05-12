@@ -1,7 +1,7 @@
-import User from "../models/model.user";
+import { User } from "../models";
 import jwt from "jsonwebtoken";
 import bcrypt from 'bcrypt'
-import { userTempInterface } from "../interfaces/interface.user";
+import { userTempInterface } from "../interfaces";
 
 export class LoginService {
     async login(userdata: userTempInterface) {

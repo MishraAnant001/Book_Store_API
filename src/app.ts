@@ -1,11 +1,6 @@
 import express from "express"
 import cookieParser from "cookie-parser";
-import { userRouter } from "./routes/route.user";
-import { loginRouter } from "./routes/route.login";
-import { signupRouter } from "./routes/route.signup";
-import { bookRouter } from "./routes/route.book";
-import { authorRouter } from "./routes/route.author";
-import { categoryRouter } from "./routes/route.category";
+import { userRouter,loginRouter,signupRouter,bookRouter,authorRouter,categoryRouter } from "./routes";
 
 export const app= express();
 

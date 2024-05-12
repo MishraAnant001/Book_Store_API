@@ -1,8 +1,7 @@
-import { UserInterface } from "../interfaces/interface.user";
-import User from "../models/model.user";
+import { UserInterface,userTempInterface } from "../interfaces";
+import { User } from "../models";
 import bcrypt from "bcrypt"
 import mongoose from 'mongoose';
-import { userTempInterface } from "../interfaces/interface.user";
 
 export class UserService {
     async getAllUsers(): Promise<any> {

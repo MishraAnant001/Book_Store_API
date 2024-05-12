@@ -1,4 +1,4 @@
-import jwt, { JwtPayload } from "jsonwebtoken"
+import jwt from "jsonwebtoken"
 import { Request, Response, NextFunction } from "express";
 
 export class Authentication {
@@ -15,7 +15,7 @@ export class Authentication {
                         msg: "secret key is missing in .env file!"
                     })
                 }
-                const decode = jwt.verify(usertoken, process.env.SECRET_KEY);
+                jwt.verify(usertoken, process.env.SECRET_KEY);
                 next()
             }
             else {

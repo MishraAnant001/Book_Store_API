@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { IBook } from "../interfaces/interface.book";
+import { IBook } from "../interfaces";
 
 const bookSchema = new mongoose.Schema({
     title: {

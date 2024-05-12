@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { CategoryService } from "../services/service.category";
+import { CategoryService } from "../services";
 const categoryService = new CategoryService();
 import {ParsedQs} from "qs"
 export class CategoryController{
@@ -74,7 +74,7 @@ export class CategoryController{
 
                 return res.json({
                     success:false,
-                    msg: `Error while registering the user, ${error.message}`
+                    msg: `Error while adding category, ${error.message}`
                 })
             }
         }

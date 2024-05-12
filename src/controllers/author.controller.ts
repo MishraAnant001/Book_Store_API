@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { AuthorService } from "../services/service.author";
-import { authorTempInterface } from "../interfaces/interface.author";
+import { AuthorService } from "../services";
+import { authorTempInterface } from "../interfaces";
 import {ParsedQs} from "qs"
 const authorService = new AuthorService();
 

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { BookService } from "../services/service.book";
-import { BookTempInterface } from "../interfaces/interface.book";
+import { BookService } from "../services";
+import { BookTempInterface } from "../interfaces";
 const bookService = new BookService();
 import {ParsedQs} from "qs"
 

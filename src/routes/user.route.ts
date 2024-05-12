@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { UserController } from "../controllers/controller.user";
-import { Authentication } from "../middlewares/JWT_Auth.middleware";
+import { UserController } from "../controllers";
+import { Authentication } from "../middlewares";
 
 const userController = new UserController();
 

@@ -1,5 +1,5 @@
-import { CategoryController } from "../controllers/controller.category";
-import { Authentication } from "../middlewares/JWT_Auth.middleware";
+import { CategoryController } from "../controllers";
+import { Authentication } from "../middlewares";
 import { Router } from "express";
 
 const categoryController = new CategoryController();

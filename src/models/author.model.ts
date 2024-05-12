@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-import { IAuthor } from "../interfaces/interface.author";
+import { IAuthor } from "../interfaces";
+
 
 const authorSchema = new mongoose.Schema({
     name: {

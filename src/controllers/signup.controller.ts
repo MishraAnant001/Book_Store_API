@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { UserService } from "../services/service.user";
-import { userTempInterface } from "../interfaces/interface.user";
+import { UserService } from "../services";
+import { userTempInterface } from "../interfaces";
 const userService = new UserService();
 
 export class SignupController {

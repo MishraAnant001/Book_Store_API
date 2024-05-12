@@ -1,6 +1,5 @@
-import mongoose from 'mongoose';
-import Category from '../models/model.category';
-import { ICategory } from '../interfaces/interface.category';
+import { Category } from '../models';
+import { ICategory } from '../interfaces';
 import { ParsedQs } from 'qs';
 
 export class CategoryService {

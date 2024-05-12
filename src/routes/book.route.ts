@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { BookController } from "../controllers/controller.book";
-import { Authentication } from "../middlewares/JWT_Auth.middleware";
+import { BookController } from "../controllers";
+import { Authentication } from "../middlewares";
 
 const bookController = new BookController();
 
