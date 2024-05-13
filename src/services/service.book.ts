@@ -27,7 +27,7 @@ export class BookService {
     }
     async getAllBooks(filters: ParsedQs): Promise<any> {
         // console.log(filters);
-        let { search, sort, fields, minPrice,maxPrice} = filters;
+        let { search, sort, fields, minPrice,maxPrice,category} = filters;
         let data: IBook[] | null = null;
         const searchfields = ["title", "description", "author.name", "category.name"]
         let searchQueryArray: object[] = [];
@@ -36,16 +36,21 @@ export class BookService {
         // console.log(filters?.page,filters?.limit)
         const skip = (page - 1) * limit
         let matchObject: any = {}
+        let filterObject: any = {}
         let sortObject: any = {
             createdAt: -1
         }
+        if(category){
+            filterObject["category.name"] = category;
+        }
+        // console.log(filterObject)
         let projectObject: any = {
         }
         if (fields) {
             if (typeof fields == "string") {
                 const fieldList = fields.split(",");
                 fieldList.forEach((field) => {
-                    console.log(field)
+                    // console.log(field)
                     if (field == "author") {
                         projectObject[field] = { $arrayElemAt: ["$author.name", 0] }
                     } else if (field == "category") {
@@ -76,6 +81,7 @@ export class BookService {
                     }
                 }
             })
+            // console.log(searchQueryArray)
             matchObject = {
                 $or: searchQueryArray
             }
@@ -109,7 +115,7 @@ export class BookService {
                 $lte : Number(maxPrice)
             }
         }
-        console.log(matchObject)
+        // console.log(matchObject)
 
         // if(numericFilters){
         //     if(typeof numericFilters === "string"){
@@ -156,8 +162,12 @@ export class BookService {
                 }
             },
             {
+                $match: filterObject
+            }, 
+            {
                 $match: matchObject
-            }, {
+            }, 
+            {
                 $project: projectObject
             },
             {
