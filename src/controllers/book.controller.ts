@@ -2,34 +2,45 @@ import { Request, Response } from "express";
 import { BookService } from "../services";
 import { BookTempInterface } from "../interfaces";
 const bookService = new BookService();
-import {ParsedQs} from "qs"
+import { ParsedQs } from "qs"
+import { ErrorCodes } from "../utils/Status_Code";
+import { BookError } from "../utils/Messages";
+import { ApiError } from "../utils/API_Error";
 
 export class BookController {
     async getAllBooksStatic(req: Request, res: Response): Promise<any> {
         // console.log("get")
         try {
-            const data: Object = await bookService.getAllBooksStatic();
-            return res.json(data)
+            const data = await bookService.getAllBooksStatic();
+            return res.status(data.statusCode).json(data)
 
         } catch (error: any) {
-            res.json({
+            res.status(ErrorCodes.internalServerError).json({
                 success: false,
-                msg: `Error while getting all books, ${error.message}`
+                msg: `${BookError.multipleFetch} : ${error.message}`
             })
         }
     }
     async getAllBooks(req: Request, res: Response): Promise<any> {
         // console.log("get")
         try {
-            const filters:ParsedQs = req.query;
-            const data: Object = await bookService.getAllBooks(filters);
-            return res.json(data)
+            const filters: ParsedQs = req.query;
+            const data = await bookService.getAllBooks(filters);
+            return res.status(data.statusCode).json(data)
 
         } catch (error: any) {
-            res.json({
-                success: false,
-                msg: `Error while getting all books, ${error.message}`
-            })
+            if (error instanceof ApiError) {
+                res.status(error.statusCode).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+            else {
+                res.status(ErrorCodes.internalServerError).json({
+                    success: false,
+                    msg: `${BookError.multipleFetch} : ${error.message}`
+                })
+            }
         }
     }
 
@@ -37,13 +48,21 @@ export class BookController {
         try {
             const { id } = req.params;
             // console.log(id)
-            const data: Object = await bookService.getBookById(id);
-            return res.json(data);
+            const data = await bookService.getBookById(id);
+            return res.status(data.statusCode).json(data)
         } catch (error: any) {
-            res.json({
-                success: false,
-                msg: `Error while getting the book, ${error.message}`
-            })
+            if (error instanceof ApiError) {
+                res.status(error.statusCode).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+            else {
+                res.status(ErrorCodes.internalServerError).json({
+                    success: false,
+                    msg: `${BookError.singleFetch} : ${error.message}`
+                })
+            }
         }
 
     }
@@ -67,19 +86,24 @@ export class BookController {
                 price: price
             }
             const data = await bookService.postBook(bookdata)
-            return res.json(data);
+            return res.status(data.statusCode).json(data)
         } catch (error: any) {
-            if (error.code === 11000) {
+            if (error instanceof ApiError) {
+                res.status(error.statusCode).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+            else if (error.code === 11000) {
                 res.json({
                     success: false,
-                    msg: `ISBN already exists or title with author already exists!`
+                    msg: BookError.isbnExists
                 })
             }
             else {
-
-                res.json({
+                res.status(ErrorCodes.internalServerError).json({
                     success: false,
-                    msg: `Error while adding the book, ${error.message}`
+                    msg: `${BookError.create} : ${error.message}`
                 })
             }
         }
@@ -106,20 +130,25 @@ export class BookController {
                 price: price
             }
             // console.log(id)
-            const data = await bookService.updateBookById(id,bookdata)
-            return res.json(data)
+            const data = await bookService.updateBookById(id, bookdata)
+            return res.status(data.statusCode).json(data)
         } catch (error: any) {
-            if (error.code === 11000) {
+            if (error instanceof ApiError) {
+                res.status(error.statusCode).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+            else if (error.code === 11000) {
                 res.json({
                     success: false,
-                    msg: `ISBN already exists or title with author already exists!`
+                    msg: BookError.isbnExists
                 })
             }
             else {
-
-                res.json({
+                res.status(ErrorCodes.internalServerError).json({
                     success: false,
-                    msg: `Error while updating the book, ${error.message}`
+                    msg: `${BookError.update} : ${error.message}`
                 })
             }
         }
@@ -130,13 +159,21 @@ export class BookController {
             const { id } = req.params;
             // console.log(id)
             const data = await bookService.deleteBook(id)
-            return res.json(data)
+            return res.status(data.statusCode).json(data)
 
         } catch (error: any) {
-            res.json({
-                success: false,
-                msg: `Error while deleting the book, ${error.message}`
-            })
+            if (error instanceof ApiError) {
+                res.status(error.statusCode).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+            else {
+                res.status(ErrorCodes.internalServerError).json({
+                    success: false,
+                    msg: `${BookError.delete} : ${error.message}`
+                })
+            }
         }
 
     }

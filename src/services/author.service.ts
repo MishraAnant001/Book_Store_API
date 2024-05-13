@@ -2,23 +2,15 @@ import mongoose from 'mongoose';
 import { ParsedQs } from 'qs';
 import { IAuthor,authorTempInterface } from '../interfaces';
 import { Author } from '../models';
+import { ApiResponse } from '../utils/API_Response';
+import { ErrorCodes, SuccessCodes } from '../utils/Status_Code';
+import { AuthorError, AuthorSuccess } from '../utils/Messages';
+import { ApiError } from '../utils/API_Error';
 
 export class AuthorService {
     async getAllAuthorsStatic(): Promise<any> {
         const data: IAuthor[] = await Author.find({}).select("name biography nationality")
-        if (data.length == 0) {
-            return {
-                success: false,
-                msg: "No Author found"
-            }
-        }
-        else {
-            return {
-                success: true,
-                msg: `${data.length} Authors found`,
-                data: data
-            }
-        }
+        return new ApiResponse(SuccessCodes.ok, data, AuthorSuccess.multipleFetch);
     }
     async getAllAuthors(filters: ParsedQs): Promise<any> {
         const {name,nationality,sort,fields}=filters
@@ -51,40 +43,23 @@ export class AuthorService {
         result = result.skip(skip).limit(limit)
         const data: IAuthor[] = await result
         if (data.length == 0) {
-            return {
-                success: false,
-                msg: "No Author found"
-            }
+            throw new ApiError(ErrorCodes.notFound, AuthorError.notFound)
         }
         else {
-            return {
-                success: true,
-                msg: `${data.length} Authors found`,
-                data: data
-            }
+            return new ApiResponse(SuccessCodes.ok, data, AuthorSuccess.multipleFetch);
         }
     }
 
     async getAuthorById(id: string): Promise<any> {
         if (!mongoose.isValidObjectId(id)) {
-            return {
-                success: false,
-                msg: "Please provide valid author id!"
-            }
+            throw new ApiError(ErrorCodes.badRequest, AuthorError.idNotValid)
         }
         const data: IAuthor | null = await Author.findOne({ _id: id })
         // console.log(data)
         if (!data) {
-            return {
-                success: false,
-                msg: "No author found"
-            }
+            throw new ApiError(ErrorCodes.notFound, AuthorError.notFound)
         }
-        return {
-            success: true,
-            msg: "author fetched successfully",
-            data: data
-        }
+        return new ApiResponse(SuccessCodes.ok, data, AuthorSuccess.singleFetch);
 
     }
 
@@ -95,18 +70,11 @@ export class AuthorService {
             biography: biography,
             nationality: nationality
         })
-        return {
-            success: true,
-            msg: "author added successfully",
-            data: data
-        }
+        return new ApiResponse(SuccessCodes.created, data, AuthorSuccess.create);
     }
     async updateAuthorById(id: string, authordata: authorTempInterface): Promise<any> {
         if (!mongoose.isValidObjectId(id)) {
-            return {
-                success: false,
-                msg: "Please provide valid author id!"
-            }
+            throw new ApiError(ErrorCodes.badRequest, AuthorError.idNotValid)
         }
         const { name, biography, nationality } = authordata;
         const data: IAuthor | null = await Author.findByIdAndUpdate(id, {
@@ -115,38 +83,21 @@ export class AuthorService {
             nationality: nationality
         })
         if (!data) {
-            return {
-                success: false,
-                msg: "No author found"
-            }
+            throw new ApiError(ErrorCodes.notFound, AuthorError.notFound)
         }
-        return {
-            success: true,
-            msg: "author updated successfully",
-            data: data
-        }
+        return new ApiResponse(SuccessCodes.ok, data, AuthorSuccess.update);
     }
 
     async deleteAuthor(id: string): Promise<any> {
         if (!mongoose.isValidObjectId(id)) {
-            return {
-                success: false,
-                msg: "Please provide valid author id!"
-            }
+            throw new ApiError(ErrorCodes.badRequest, AuthorError.idNotValid)
         }
         const data: IAuthor | null = await Author.findByIdAndDelete({ _id: id })
         // console.log(data)
         if (!data) {
-            return {
-                success: false,
-                msg: "No author found"
-            }
+            throw new ApiError(ErrorCodes.notFound, AuthorError.notFound)
         }
-        return {
-            success: true,
-            msg: "author deleted successfully",
-            data: data
-        }
+        return new ApiResponse(SuccessCodes.ok, data, AuthorSuccess.delete);
 
     }
 

@@ -2,19 +2,22 @@ import { Request, Response } from "express";
 import { AuthorService } from "../services";
 import { authorTempInterface } from "../interfaces";
 import {ParsedQs} from "qs"
+import { ErrorCodes } from "../utils/Status_Code";
+import { AuthorError } from "../utils/Messages";
+import { ApiError } from "../utils/API_Error";
 const authorService = new AuthorService();
 
 export class AuthorController{
     async getAllAuthorsStatic(req: Request, res: Response): Promise<any> {
         // console.log("get")
         try {
-            const data:Object = await authorService.getAllAuthorsStatic()
-            return res.json(data)
+            const data = await authorService.getAllAuthorsStatic()
+            return res.status(data.statusCode).json(data)
             
         } catch (error: any) {
-            res.json({
-                success:false,
-                msg: `Error while getting all authors, ${error.message}`
+            res.status(ErrorCodes.internalServerError).json({
+                success: false,
+                msg: `${AuthorError.multipleFetch} : ${error.message}`
             })
         }
     }
@@ -22,14 +25,22 @@ export class AuthorController{
         // console.log("get")
         try {
             const filters:ParsedQs = req.query;
-            const data:Object = await authorService.getAllAuthors(filters)
-            return res.json(data)
+            const data = await authorService.getAllAuthors(filters)
+            return res.status(data.statusCode).json(data)
             
         } catch (error: any) {
-            res.json({
-                success:false,
-                msg: `Error while getting all authors, ${error.message}`
-            })
+            if (error instanceof ApiError) {
+                res.status(error.statusCode).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+            else {
+                res.status(ErrorCodes.internalServerError).json({
+                    success: false,
+                    msg: `${AuthorError.multipleFetch} : ${error.message}`
+                })
+            }
         }
     }
 
@@ -37,13 +48,21 @@ export class AuthorController{
         try {
             const { id } = req.params;
             // console.log(id)
-            const data :Object = await authorService.getAuthorById(id)
-            return res.json(data);
+            const data  = await authorService.getAuthorById(id)
+            return res.status(data.statusCode).json(data)
         } catch (error: any) {
-            res.json({
-                success:false,
-                msg: `Error while getting the authors, ${error.message}`
-            })
+            if (error instanceof ApiError) {
+                res.status(error.statusCode).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+            else {
+                res.status(ErrorCodes.internalServerError).json({
+                    success: false,
+                    msg: `${AuthorError.singleFetch} : ${error.message}`
+                })
+            }
         }
 
     }
@@ -51,31 +70,36 @@ export class AuthorController{
     async postAuthor(req: Request, res: Response): Promise<any> {
         try {
             const { name, biography, nationality } = req.body;
-            if(!name || !biography || !nationality){
-                return res.json({
-                    success: false,
-                    msg: `Please provide value in request body!`
-                })
-            }
+            // if(!name || !biography || !nationality){
+            //     return res.json({
+            //         success: false,
+            //         msg: `Please provide value in request body!`
+            //     })
+            // }
             const authordata : authorTempInterface ={
                 name:name,
                 biography:biography,
                 nationality:nationality
             }
             const data = await authorService.postAuthor(authordata)
-            return res.json(data);
+            return res.status(data.statusCode).json(data)
         } catch (error:any){
-            if(error.code ===11000){
-                res.json({
-                    success:false,
-                    msg: `Author already exists!`
-                }) 
+            if (error instanceof ApiError) {
+                res.status(error.statusCode).json({
+                    success: false,
+                    message: error.message
+                });
             }
-            else{
-
+            else if (error.code === 11000) {
                 res.json({
-                    success:false,
-                    msg: `Error while adding the author, ${error.message}`
+                    success: false,
+                    msg: AuthorError.alreadyExists
+                })
+            }
+            else {
+                res.status(ErrorCodes.internalServerError).json({
+                    success: false,
+                    msg: `${AuthorError.create} : ${error.message}`
                 })
             }
         }
@@ -86,12 +110,12 @@ export class AuthorController{
         try {
             const { id } = req.params;
             const { name, biography, nationality } = req.body;
-            if(!name || !biography || !nationality){
-                return res.json({
-                    success: false,
-                    msg: `Please provide value in request body!`
-                })
-            }
+            // if(!name || !biography || !nationality){
+            //     return res.json({
+            //         success: false,
+            //         msg: `Please provide value in request body!`
+            //     })
+            // }
             const authordata : authorTempInterface ={
                 name:name,
                 biography:biography,
@@ -99,12 +123,26 @@ export class AuthorController{
             }
             // console.log(id)
             const data = await authorService.updateAuthorById(id, authordata)
-            return res.json(data)
+            return res.status(data.statusCode).json(data)
         } catch (error:any) {
-            res.json({
-                success:false,
-                msg: `Error while updating the author, ${error.message}`
-            })
+            if (error instanceof ApiError) {
+                res.status(error.statusCode).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+            else if (error.code === 11000) {
+                res.json({
+                    success: false,
+                    msg: AuthorError.alreadyExists
+                })
+            }
+            else {
+                res.status(ErrorCodes.internalServerError).json({
+                    success: false,
+                    msg: `${AuthorError.update} : ${error.message}`
+                })
+            }
         }
        
     }
@@ -113,13 +151,21 @@ export class AuthorController{
             const { id } = req.params;
             // console.log(id)
             const data = await authorService.deleteAuthor(id);
-            return res.json(data)
+            return res.status(data.statusCode).json(data)
 
         } catch (error: any) {
-            res.json({
-                success:false,
-                msg: `Error while deleting the author, ${error.message}`
-            })
+            if (error instanceof ApiError) {
+                res.status(error.statusCode).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+            else {
+                res.status(ErrorCodes.internalServerError).json({
+                    success: false,
+                    msg: `${AuthorError.delete} : ${error.message}`
+                })
+            }
         }
 
     }

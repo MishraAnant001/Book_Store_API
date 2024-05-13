@@ -1,19 +1,15 @@
-import {app} from "./app";
 import { config } from "dotenv";
-import { ConnectDB } from "./DB/connectDB";
+import { connectDB } from "./DB/connectDB";
+import { startServer } from "./Server/server";
+import { DatabaseError } from "./utils/Messages";
 config()
 
-const connection = new ConnectDB();
-
-connection.connect().then(() => {
+async function start(){
     try {
-        const port = process.env.PORT || 4000
-        app.listen(port, () => {
-            console.log("Server is listening on port :", port)
-        })
-    } catch (error) {
-        console.log(error)
+        await connectDB();
+        startServer()
+    } catch (error:any) {
+        console.log(DatabaseError.process,error.message)
     }
-}).catch((err)=>{
-    console.log("Error connecting to DB :",err.message)
-})
+}
+start();

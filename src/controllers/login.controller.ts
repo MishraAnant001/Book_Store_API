@@ -1,6 +1,9 @@
 import { userTempInterface } from "../interfaces";
 import { LoginService } from "../services";
 import { Request, Response } from "express";
+import { ErrorCodes } from "../utils/Status_Code";
+import { ApiError } from "../utils/API_Error";
+import { LoginError } from "../utils/Messages";
 const loginService = new LoginService();
 
 export class LoginController {
@@ -9,17 +12,14 @@ export class LoginController {
         try {
             // console.log(req)
             const userdata:userTempInterface = req.body;
-            if(!userdata){
-                return res.json({
-                    success: false,
-                    msg: `Please provide value in request body!`
-                })
-            }
+            // if(!userdata){
+            //     return res.json({
+            //         success: false,
+            //         msg: `Please provide value in request body!`
+            //     })
+            // }
             const data = await loginService.login(userdata);
-            if(data.success==false){
-                return res.json(data)
-            }else{
-                const token = data.token
+                const token = data.data
                 // console.log(userdata)
                 if(userdata.username=="admin"){
                     // console.log("creating admin token")
@@ -29,12 +29,19 @@ export class LoginController {
                     res.cookie("usertoken",token)
                 }
                 return res.json(data)
-            }
         } catch (error: any) {
-            res.json({
-                success:false,
-                msg: `Error while logging in..., ${error.message}`
-            })
+            if(error instanceof ApiError){
+                res.status(error.statusCode).json({
+                    success:false,
+                    message:error.message
+                });
+            }
+            else{
+                res.status(ErrorCodes.internalServerError).json({
+                    success:false,
+                    msg:`${LoginError.message} : ${error.message}`
+                })
+            }
         }
     }
 }

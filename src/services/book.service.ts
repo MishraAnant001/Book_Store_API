@@ -1,28 +1,20 @@
 import mongoose from 'mongoose';
-import { Book,Category,Author } from '../models';
-import { BookTempInterface,IBook,IAuthor,ICategory } from '../interfaces';
+import { Book, Category, Author } from '../models';
+import { BookTempInterface, IBook, IAuthor, ICategory } from '../interfaces';
 import { ParsedQs } from 'qs';
+import { AuthorError, BookError, BookSuccess, CategoryError } from '../utils/Messages';
+import { ErrorCodes, SuccessCodes } from '../utils/Status_Code';
+import { ApiResponse } from '../utils/API_Response';
+import { ApiError } from '../utils/API_Error';
 
 export class BookService {
     async getAllBooksStatic(): Promise<any> {
         const data: IBook[] = await Book.find({}).select("title author category description price")
-        if (data.length == 0) {
-            return {
-                success: false,
-                msg: "No Book found"
-            }
-        }
-        else {
-            return {
-                success: true,
-                msg: `${data.length} Books found`,
-                data: data
-            }
-        }
+        return new ApiResponse(SuccessCodes.ok, data, BookSuccess.multipleFetch);
     }
     async getAllBooks(filters: ParsedQs): Promise<any> {
         // console.log(filters);
-        let { search, sort, fields, minPrice,maxPrice} = filters;
+        let { search, sort, fields, minPrice, maxPrice, category } = filters;
         let data: IBook[] | null = null;
         const searchfields = ["title", "description", "author.name", "category.name"]
         let searchQueryArray: object[] = [];
@@ -31,16 +23,21 @@ export class BookService {
         // console.log(filters?.page,filters?.limit)
         const skip = (page - 1) * limit
         let matchObject: any = {}
+        let filterObject: any = {}
         let sortObject: any = {
             createdAt: -1
         }
+        if (category) {
+            filterObject["category.name"] = category;
+        }
+        // console.log(filterObject)
         let projectObject: any = {
         }
         if (fields) {
             if (typeof fields == "string") {
                 const fieldList = fields.split(",");
                 fieldList.forEach((field) => {
-                    console.log(field)
+                    // console.log(field)
                     if (field == "author") {
                         projectObject[field] = { $arrayElemAt: ["$author.name", 0] }
                     } else if (field == "category") {
@@ -71,6 +68,7 @@ export class BookService {
                     }
                 }
             })
+            // console.log(searchQueryArray)
             matchObject = {
                 $or: searchQueryArray
             }
@@ -94,17 +92,18 @@ export class BookService {
                 // console.log(sortObject)
             }
         }
-        if(minPrice){
-            matchObject["price"] ={
-                $gte : Number(minPrice)
+        if (minPrice) {
+            matchObject["price"] = {
+                $gte: Number(minPrice)
             }
         }
-        if(maxPrice){
-            matchObject["price"] ={...matchObject["price"],
-                $lte : Number(maxPrice)
+        if (maxPrice) {
+            matchObject["price"] = {
+                ...matchObject["price"],
+                $lte: Number(maxPrice)
             }
         }
-        console.log(matchObject)
+        // console.log(matchObject)
 
         // if(numericFilters){
         //     if(typeof numericFilters === "string"){
@@ -151,8 +150,12 @@ export class BookService {
                 }
             },
             {
+                $match: filterObject
+            },
+            {
                 $match: matchObject
-            }, {
+            },
+            {
                 $project: projectObject
             },
             {
@@ -165,6 +168,7 @@ export class BookService {
                 $limit: Number(limit)
             },
         ])
+
         // if (search) {
         //     if (typeof search === 'string') {
         //         const regEx = new RegExp(search, 'i');
@@ -249,16 +253,9 @@ export class BookService {
         //     ])
         // }
         if (data && data.length == 0) {
-            return {
-                success: false,
-                msg: "No Book found"
-            }
+            throw new ApiError(ErrorCodes.notFound, BookError.notFound)
         } else {
-            return {
-                success: true,
-                msg: `${data.length} Books found`,
-                data: data
-            }
+            return new ApiResponse(SuccessCodes.ok, data, BookSuccess.multipleFetch);
         }
     }
 
@@ -371,26 +368,17 @@ export class BookService {
     //     }
 
     // }
+
     async getBookById(id: string): Promise<any> {
         if (!mongoose.isValidObjectId(id)) {
-            return {
-                success: false,
-                msg: "Please provide valid book id!"
-            }
+            throw new ApiError(ErrorCodes.badRequest, BookError.idNotValid)
         }
         const data: IBook | null = await Book.findOne({ _id: id })
         // console.log(data)
         if (!data) {
-            return {
-                success: false,
-                msg: "No book found"
-            }
+            throw new ApiError(ErrorCodes.notFound, BookError.notFound)
         }
-        return {
-            success: true,
-            msg: "book fetched successfully",
-            data: data
-        }
+        return new ApiResponse(SuccessCodes.ok, data, BookSuccess.singleFetch)
 
     }
 
@@ -398,17 +386,12 @@ export class BookService {
         const { title, author, category, ISBN, description, price } = bookdata;
         const userauthor: IAuthor | null = await Author.findOne({ name: author })
         if (!userauthor) {
-            return {
-                success: false,
-                msg: "No such author found please create author!"
-            }
+            throw new ApiError(ErrorCodes.notFound, AuthorError.notFound)
         }
         const userCategory: ICategory | null = await Category.findOne({ name: category })
         if (!userCategory) {
-            return {
-                success: false,
-                msg: "No such category found please create category!"
-            }
+            // throw new ApiError()
+            throw new ApiError(ErrorCodes.notFound, CategoryError.notFound)
         }
         const data: IBook = await Book.create({
             title: title,
@@ -418,11 +401,7 @@ export class BookService {
             description: description,
             price: price
         })
-        return {
-            success: true,
-            msg: "Book added successfully",
-            data: data
-        }
+        return new ApiResponse(SuccessCodes.created, data, BookSuccess.create)
     }
     // async postBook(bookdata: BookTempInterface): Promise<any> {
     //     const { title, author, category, ISBN, description, price } = bookdata;
@@ -454,27 +433,19 @@ export class BookService {
     //         data: data
     //     }
     // }
+
     async updateBookById(id: string, bookdata: BookTempInterface): Promise<any> {
         if (!mongoose.isValidObjectId(id)) {
-            return {
-                success: false,
-                msg: "Please provide valid book id!"
-            }
+            throw new ApiError(ErrorCodes.badRequest, BookError.idNotValid)
         }
         const { title, author, category, ISBN, description, price } = bookdata;
         const userauthor: IAuthor | null = await Author.findOne({ name: author })
         if (!userauthor) {
-            return {
-                success: false,
-                msg: "No such author found please create author!"
-            }
+            throw new ApiError(ErrorCodes.notFound, AuthorError.notFound)
         }
         const userCategory: ICategory | null = await Category.findOne({ name: category })
         if (!userCategory) {
-            return {
-                success: false,
-                msg: "No such category found please create category!"
-            }
+            throw new ApiError(ErrorCodes.notFound, CategoryError.notFound)
         }
         const data: IBook | null = await Book.findByIdAndUpdate(id, {
             title: title,
@@ -485,38 +456,21 @@ export class BookService {
             price: price
         })
         if (!data) {
-            return {
-                success: false,
-                msg: "No book found"
-            }
+            throw new ApiError(ErrorCodes.notFound, BookError.notFound)
         }
-        return {
-            success: true,
-            msg: "book updated successfully",
-            data: data
-        }
+        return new ApiResponse(SuccessCodes.ok, data, BookSuccess.update)
     }
 
     async deleteBook(id: string): Promise<any> {
         if (!mongoose.isValidObjectId(id)) {
-            return {
-                success: false,
-                msg: "Please provide valid book id!"
-            }
+            throw new ApiError(ErrorCodes.badRequest, BookError.idNotValid)
         }
         const data: IBook | null = await Book.findByIdAndDelete({ _id: id })
         // console.log(data)
         if (!data) {
-            return {
-                success: false,
-                msg: "No book found"
-            }
+            throw new ApiError(ErrorCodes.notFound, BookError.notFound)
         }
-        return {
-            success: true,
-            msg: "book deleted successfully",
-            data: data
-        }
+        return new ApiResponse(SuccessCodes.ok, data, BookSuccess.delete)
 
     }
 

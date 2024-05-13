@@ -1,47 +1,28 @@
-import { UserInterface,userTempInterface } from "../interfaces";
+import { UserInterface, userTempInterface } from "../interfaces";
 import { User } from "../models";
 import bcrypt from "bcrypt"
 import mongoose from 'mongoose';
+import { ApiResponse } from "../utils/API_Response";
+import { ErrorCodes, SuccessCodes } from "../utils/Status_Code";
+import { UserError, UserSuccess } from "../utils/Messages";
+import { ApiError } from "../utils/API_Error";
 
 export class UserService {
     async getAllUsers(): Promise<any> {
         const data: UserInterface[] = await User.find({}).select("username");
-        if (data.length == 0) {
-            return {
-                success: false,
-                msg: "No user found"
-            }
-        }
-        else {
-            return {
-                success: true,
-                msg: `${data.length} Users found`,
-                data: data
-            }
-        }
+        return new ApiResponse(SuccessCodes.ok, data, UserSuccess.multipleFetch);
     }
 
     async getUserById(id: string): Promise<any> {
         if (!mongoose.isValidObjectId(id)) {
-            return {
-                success: false,
-                msg: "Please provide valid user id!"
-            }
+            throw new ApiError(ErrorCodes.badRequest, UserError.idNotValid)
         }
         const data: UserInterface | null = await User.findOne({ _id: id })
         // console.log(data)
         if (!data) {
-            return {
-                success: false,
-                msg: "No user found"
-            }
+            throw new ApiError(ErrorCodes.notFound,UserError.notFound)
         }
-        return {
-            success: true,
-            msg: "user fetched successfully",
-            data: data
-        }
-
+        return new ApiResponse(SuccessCodes.ok, data, UserSuccess.singleFetch)
     }
 
     async postUser(userdata: userTempInterface): Promise<any> {
@@ -51,20 +32,12 @@ export class UserService {
             username: userdata.username,
             password: password
         })
-        return {
-            success: true,
-            msg: "User Registered Successfully",
-            data: data
-        }
-
+        return new ApiResponse(SuccessCodes.created, data, UserSuccess.register)
     }
 
     async updateUser(id: string, userdata: userTempInterface): Promise<any> {
         if (!mongoose.isValidObjectId(id)) {
-            return {
-                success: false,
-                msg: "Please provide valid user id!"
-            }
+            throw new ApiError(ErrorCodes.badRequest, UserError.idNotValid)
         }
         const password: string = await bcrypt.hash(userdata.password, 10);
         const data: UserInterface | null = await User.findByIdAndUpdate(id, {
@@ -72,39 +45,22 @@ export class UserService {
             password: password
         })
         if (!data) {
-            return {
-                success: false,
-                msg: "No user found"
-            }
+            throw new ApiError(ErrorCodes.notFound,UserError.notFound)
         }
-        return {
-            success: true,
-            msg: "user updated successfully",
-            data: data
-        }
+        return new ApiResponse(SuccessCodes.ok, data, UserSuccess.update)
     }
 
     async deleteUser(id: string): Promise<any> {
 
         if (!mongoose.isValidObjectId(id)) {
-            return {
-                success: false,
-                msg: "Please provide valid user id!"
-            }
+            throw new ApiError(ErrorCodes.badRequest, UserError.idNotValid)
         }
         const data: UserInterface | null = await User.findByIdAndDelete({ _id: id })
         // console.log(data)
         if (!data) {
-            return {
-                success: false,
-                msg: "No user found"
-            }
+            throw new ApiError(ErrorCodes.notFound,UserError.notFound)
         }
-        return {
-            success: true,
-            msg:"user deleted successfully",
-            data: data
-        }
+        return new ApiResponse(SuccessCodes.ok, data, UserSuccess.delete)
     }
 
 

@@ -1,23 +1,15 @@
 import { Category } from '../models';
 import { ICategory } from '../interfaces';
 import { ParsedQs } from 'qs';
+import { ApiResponse } from '../utils/API_Response';
+import { ErrorCodes, SuccessCodes } from '../utils/Status_Code';
+import { CategoryError, CategorySuccess } from '../utils/Messages';
+import { ApiError } from '../utils/API_Error';
 
 export class CategoryService {
     async getAllCategoriesStatic(): Promise<any> {
         const data: ICategory[] = await Category.find({}).select("name")
-        if (data.length == 0) {
-            return {
-                success: false,
-                msg: "No Category found"
-            }
-        }
-        else {
-            return {
-                success: true,
-                msg: `${data.length} Categories found`,
-                data: data
-            }
-        }
+        return new ApiResponse(SuccessCodes.ok, data, CategorySuccess.message);
     }
     async getAllCategories(filters: ParsedQs): Promise<any> {
         const {name,sort} = filters;
@@ -38,84 +30,77 @@ export class CategoryService {
         result = result.skip(skip).limit(limit)
         const data: ICategory[] = await result.select("name")
         if (data.length == 0) {
-            return {
-                success: false,
-                msg: "No Category found"
-            }
+            throw new ApiError(ErrorCodes.notFound,CategoryError.notFound)
         }
         else {
-            return {
-                success: true,
-                msg: `${data.length} Categories found`,
-                data: data
-            }
+            return new ApiResponse(SuccessCodes.ok, data, CategorySuccess.message);
         }
     }
 
-    async getCategoryByName(name: string): Promise<any> {
-        const data: ICategory | null = await Category.findOne({ name:name.toLowerCase() })
-        // console.log(data)
-        if (!data) {
-            return {
-                success: false,
-                msg: "No category found"
-            }
-        }
-        return {
-            success: true,
-            msg: "category fetched successfully",
-            data: data
-        }
+    // async getCategoryByName(name: string): Promise<any> {
+    //     const data: ICategory | null = await Category.findOne({ name:name.toLowerCase() })
+    //     // console.log(data)
+    //     if (!data) {
+    //         return {
+    //             success: false,
+    //             msg: "No category found"
+    //         }
+    //     }
+    //     return {
+    //         success: true,
+    //         msg: "category fetched successfully",
+    //         data: data
+    //     }
 
-    }
+    // }
 
-    async postCategory(name:string): Promise<any> {
+    // async postCategory(name:string): Promise<any> {
         
-        const data: ICategory = await Category.create({
-            name: name.toLowerCase()
-        })
-        return {
-            success: true,
-            msg: "category added successfully",
-            data: data
-        }
-    }
-    async updateCategoryByName(oldname:string,newname:string): Promise<any> {
+    //     const data: ICategory = await Category.create({
+    //         name: name.toLowerCase()
+    //     })
+    //     return {
+    //         success: true,
+    //         msg: "category added successfully",
+    //         data: data
+    //     }
+    // }
+    // async updateCategoryByName(oldname:string,newname:string): Promise<any> {
 
-        const verify: ICategory | null = await Category.findOne({ name:oldname.toLowerCase() })
-        // console.log(data)
-        if (!verify) {
-            return {
-                success: false,
-                msg: "No category found"
-            }
-        }
-        const data = await Category.findByIdAndUpdate(verify._id,{
-            name:newname.toLowerCase()
-        })
-        return {
-            success: true,
-            msg: "category updated successfully",
-            data: data
-        }
-    }
+    //     const verify: ICategory | null = await Category.findOne({ name:oldname.toLowerCase() })
+    //     // console.log(data)
+    //     if (!verify) {
+    //         return {
+    //             success: false,
+    //             msg: "No category found"
+    //         }
+    //     }
+    //     const data = await Category.findByIdAndUpdate(verify._id,{
+    //         name:newname.toLowerCase()
+    //     })
+    //     return {
+    //         success: true,
+    //         msg: "category updated successfully",
+    //         data: data
+    //     }
+    // }
 
-    async deleteCateogryByName(name: string): Promise<any> {
-        const verify: ICategory | null = await Category.findOne({ name:name.toLowerCase() })
-        // console.log(data)
-        if (!verify) {
-            return {
-                success: false,
-                msg: "No category found"
-            }
-        }
-        const data = await Category.findByIdAndDelete(verify._id)
-        return {
-            success: true,
-            msg: "category deleted successfully",
-            data: data
-        }
+    // async deleteCateogryByName(name: string): Promise<any> {
+    //     const verify: ICategory | null = await Category.findOne({ name:name.toLowerCase() })
+    //     // console.log(data)
+    //     if (!verify) {
+    //         return {
+    //             success: false,
+    //             msg: "No category found"
+    //         }
+    //     }
+    //     const data = await Category.findByIdAndDelete(verify._id)
+    //     return {
+    //         success: true,
+    //         msg: "category deleted successfully",
+    //         data: data
+    //     }
 
-    }
+    // }
 
 }
